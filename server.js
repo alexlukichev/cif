@@ -28,7 +28,7 @@ app.post("/:project", function (req, res) {
                 "colkey text," +
                 "value text," +
                 "PRIMARY KEY(rowkey, colkey)" +
-                ")",
+                ");",
     function (err) {
       if (err) {
         console.log("Error creating project", err);
@@ -40,7 +40,7 @@ app.post("/:project", function (req, res) {
 });
 
 app.get("/:project/:rowkey/:colkey", function (req, res) {
-  client.execute("select value from data."+req.params.project+" where rowkey=? and colkey=?",
+  client.execute("select value from data."+req.params.project+" where rowkey=? and colkey=?;",
     [ req.params.rowkey, req.params.colkey ], { prepare: true }, function (err, result) {
       if (err || result.rows.length == 0) {
         res.json({ value: null });
@@ -51,7 +51,7 @@ app.get("/:project/:rowkey/:colkey", function (req, res) {
 });
 
 app.get("/:project/:rowkey", function (req, res) {
-  client.execute("select colkey, value from data."+req.params.project+" where rowkey=? and colkey >= ? and colkey <= ?",
+  client.execute("select colkey, value from data."+req.params.project+" where rowkey=? and colkey >= ? and colkey <= ?;",
     [ req.params.rowkey, req.query.from, req.query.to ], { prepare: true }, function (err, result) {
       if (err) {
         console.log(err);
@@ -59,7 +59,7 @@ app.get("/:project/:rowkey", function (req, res) {
       } else {
         var r = [];
         for (var i=0; i<result.rows.length; i++) {
-          r.push({ name: result.rows[i].colkey, value: result.rows[i].value });
+          r.push({ name: result.rows[i].colkey, value: JSON.parse(result.rows[i].value) });
         }
         res.json(r);
       }
@@ -67,7 +67,7 @@ app.get("/:project/:rowkey", function (req, res) {
 });
 
 app.put("/:project/:rowkey/:colkey", function (req, res) {
-  client.execute("insert into data."+req.params.project+" (rowkey, colkey, value) values(?, ?, ?)",
+  client.execute("insert into data."+req.params.project+" (rowkey, colkey, value) values(?, ?, ?);",
     [ req.params.rowkey, req.params.colkey, JSON.stringify(req.body.value) ], { prepare: true }, function (err) {
       if (err) {
         console.log(err);
@@ -82,7 +82,7 @@ app.put("/:project/:rowkey", function (req, res) {
   var batch = [];
   for (var i=0; i<req.body.length; i++) {
     batch.push({ 
-      query: "insert into data."+req.params.project+" (rowkey, colkey, value) values(?, ?, ?)",
+      query: "insert into data."+req.params.project+" (rowkey, colkey, value) values(?, ?, ?);",
       params: [ req.params.rowkey, req.body[i].name, JSON.stringify(req.body[i].value) ]
     });
   }
