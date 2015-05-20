@@ -89,9 +89,9 @@ app.put("/:project/:rowkey", function (req, res) {
   client.batch(batch, { prepare: true }, function (err) {
     if (err) {
       console.log(err);
-      req.sendStatus(500);
+      res.sendStatus(500);
     } else {
-      req.sendStatus(200);
+      res.sendStatus(200);
     }
   });
 });
